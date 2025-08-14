@@ -9,5 +9,5 @@ def version():
     """
     Displays the current version of the Qyro CLI.
     """
-    EngineMessage.show(f"Qyro version: {__version__}", level="info")
+    EngineMessage.show(f"[Qyro] version: {__version__}", level="info")
     sys.exit(0)

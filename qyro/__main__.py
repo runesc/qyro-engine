@@ -1,5 +1,3 @@
-# qyro/__main__.py
-
 import sys
 import textwrap
 import logging

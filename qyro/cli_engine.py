@@ -1,9 +1,8 @@
-# cli_engine.py
-
 import argparse
 import sys
 import inspect
 from typing import Callable
+from .utils import EngineMessage
 
 
 COMMANDS = {}  # Dictionary to store dynamically registered commands
@@ -35,15 +34,29 @@ def CLI(**kwargs) -> Callable[[Callable], Callable]:
 def _create_arg_parser() -> argparse.ArgumentParser:
     """
     Creates and returns the argparse parser, configuring subparsers
-    for each dynamically registered command.
+    for each dynamically registered command, and also a global --version flag.
     """
-    prog_name = 'python -m cli_engine' if sys.argv[0].endswith(
-        'cli_engine.py') and '-m' in sys.argv else sys.argv[0]
+    prog_name = 'python -m qyro' if sys.argv[0].endswith(
+        'qyro') and '-m' in sys.argv else sys.argv[0]
 
     parser = argparse.ArgumentParser(
         prog=prog_name,
         description='Executes CLI/Engine framework commands.',
         epilog='Use <command> --help for more information about a specific command.'
+    )
+
+    __version__ = "2.1.0"
+
+    class RichVersionAction(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            EngineMessage.show(f"Qyro v{__version__}", level="info")
+            sys.exit(0)
+
+    parser.add_argument(
+        '--version',
+        action=RichVersionAction,
+        nargs=0,
+        help='Show program\'s version number and exit.'
     )
 
     subparsers = parser.add_subparsers(

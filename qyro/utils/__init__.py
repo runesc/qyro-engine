@@ -1,5 +1,3 @@
-# qyro/utils/__init__.py
-
 from rich.console import Console
 import sys
 import logging
@@ -27,7 +25,7 @@ class EngineMessage:
         Display a message with rich formatting based on its level.
         """
         emoji, style = cls.LEVEL_STYLES.get(level, ("❌", "bold red"))
-        console.print(f"{emoji} [{style}]{level.upper()}:[/{style}] {message}")
+        console.print(f"{emoji} [{style}]{level.upper()}:[/{style}] {message}", highlight=False)
 
 
 class EngineError(Exception):
