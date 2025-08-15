@@ -6,13 +6,13 @@
 
 <h3 align="center">Qyro - <b>Q</b>t p<b>y</b>thon <b>R</b>esource <b>O</b>rchestrator</h3>
 
-![GitHub Release](https://img.shields.io/github/v/release/neuri-ai/Qyro?include_prereleases&display_name=release&color=stable)
-![GitHub Issues](https://img.shields.io/github/issues/neuri-ai/Qyro?color=%23ab7df8)
-![GitHub Issues Closed](https://img.shields.io/github/issues-closed/neuri-ai/Qyro?color=green)
-![GitHub forks](https://img.shields.io/github/forks/neuri-ai/Qyro)
-![GitHub stars](https://img.shields.io/github/stars/neuri-ai/Qyro)
-![GitHub license](https://img.shields.io/github/license/neuri-ai/Qyro)
-![PyPI Downloads](https://static.pepy.tech/badge/qyro)
+![GitHub Release](https://img.shields.io/github/v/release/runesc/qyro-engine?include_prereleases&display_name=release&color=stable)
+![GitHub Issues](https://img.shields.io/github/issues/runesc/qyro-engine?color=%23ab7df8)
+![GitHub Issues Closed](https://img.shields.io/github/issues-closed/runesc/qyro-engine?color=green)
+![GitHub forks](https://img.shields.io/github/forks/runesc/qyro-engine)
+![GitHub stars](https://img.shields.io/github/stars/runesc/qyro-engine)
+![GitHub license](https://img.shields.io/github/license/runesc/qyro-engine)
+
 
 Qyro is a simple and powerful **Python application packager**, inspired by FBS.  
 It allows you to compile Python/Qt applications into standalone executables with ease, manage resources, and create installers for multiple platforms.
