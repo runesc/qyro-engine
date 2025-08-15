@@ -1,7 +1,7 @@
 import sys
 from qyro_engine.core.${python_bindings} import AppEngine
-from qyro_engine.core.base import Component, init_lifecycle
-from qyro_engine.core.utils import app_is_frozen
+from qyro_engine.core.base import Component, bootstrap
+from qyro_engine.utils import app_is_frozen
 from qyro_engine.devtools.reloader import hot_reloading
 from qyro_engine.store import Pydux
 from ${python_bindings}.QtWidgets import QMainWindow, QLabel
@@ -22,7 +22,7 @@ from ${python_bindings}.QtWidgets import QMainWindow, QLabel
 # performance, stability, and security.
 # --------------------------------------------------------------------------------------
 
-@init_lifecycle
+@bootstrap
 @hot_reloading
 class ${app_name}(QMainWindow, Component, Pydux):
     def component_will_mount(self):

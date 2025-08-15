@@ -1,30 +1,14 @@
 try:
-    from PySide6.QtCore import QObject, Signal, Slot, QTimer, Qt, QRect, QUrl, QTimer
-    from PySide6.QtWidgets import QLabel, QPushButton, QWidget, QApplication, QVBoxLayout, QHBoxLayout, QMainWindow
-    from PySide6.QtWebChannel import QWebChannel
-    from PySide6.QtWebEngineWidgets import QWebEngineView
-
+    from PySide6.QtWidgets import QWidget, QApplication
 except ImportError:
     try:
-
-        from PySide2.QtCore import QObject, Signal, Slot, Qt, QTimer
-        from PySide2.QtWidgets import QMainWindow, QApplication, QWidget
-        from PySide2.QtWebChannel import QWebChannel
+        from PySide2.QtWidgets import QApplication, QWidget
     except ImportError:
         try:
-
-            from PyQt6.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
-
-            from PyQt6.QtWidgets import QMainWindow, QApplication, QWidget
-            from PyQt6.QtWebChannel import QWebChannel
-
-
+            from PyQt6.QtWidgets import  QApplication, QWidget
         except ImportError:
             try:
-
-                from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
-                from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget
-                from PyQt5.QtWebChannel import QWebChannel
+                from PyQt5.QtWidgets import QApplication, QWidget
 
             except ImportError:
                 raise ImportError(
@@ -127,7 +111,7 @@ class Component:
             self.render_()
             self.responsive_UI()
             self.component_did_mount()
-            self.set_CSS()
+            self.set_styles()
 
             self._ensure_children_visibility()
         except RuntimeError: pass
