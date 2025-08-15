@@ -1,38 +1,18 @@
-from rich.console import Console
-import sys
-import logging
+import importlib.util
+from .exceptions import EngineError, EngineMessage
+from .fs import QYRO_METADATA
+from .parsers import to_camel_case
 
-console = Console(stderr=True)
 
-class EngineMessage:
+def module_exists(module_name: str) -> bool:
     """
-    Class to display formatted messages in the console.
-    Separates the printing logic from exception handling.
+    Checks if a Python module is available for import.
+
+    Args:
+        module_name (str): The name of the module to check.
+
+    Returns:
+        bool: True if the module is found, False otherwise.
     """
-
-    LEVEL_STYLES = {
-        "error": ("❌", "bold red"),
-        "warning": ("⚠️", "bold yellow"),
-        "info": ("ℹ️", "bold cyan"),
-        "debug": ("🛠️", "bold magenta"),
-        "critical": ("🚨", "bold red on white"),
-        "hot": ("🔥", "bold red"),
-    }
-
-    @classmethod
-    def show(cls, message: str, level: str = "error"):
-        """
-        Display a message with rich formatting based on its level.
-        """
-        emoji, style = cls.LEVEL_STYLES.get(level, ("❌", "bold red"))
-        console.print(f"{emoji} [{style}]{level.upper()}:[/{style}] {message}", highlight=False)
-
-
-class EngineError(Exception):
-    """
-    Base exception for the Qyro Engine.
-    Used only to be raised as an error; display is handled via EngineMessage.
-    """
-    def __init__(self, message: str):
-        super().__init__(message)
-        EngineMessage.show(message, level="error")
+    module_spec = importlib.util.find_spec(module_name)
+    return module_spec is not None

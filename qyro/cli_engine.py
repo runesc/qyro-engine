@@ -2,11 +2,10 @@ import argparse
 import sys
 import inspect
 from typing import Callable
-from .utils import EngineMessage
+from .utils import EngineMessage, QYRO_METADATA
 
 
 COMMANDS = {}  # Dictionary to store dynamically registered commands
-
 
 class DynamicCommand:
     """Internal class to encapsulate a registered command with metadata."""
@@ -45,11 +44,9 @@ def _create_arg_parser() -> argparse.ArgumentParser:
         epilog='Use <command> --help for more information about a specific command.'
     )
 
-    __version__ = "2.1.0"
-
     class RichVersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            EngineMessage.show(f"Qyro v{__version__}", level="info")
+            EngineMessage.show(f"Qyro v{QYRO_METADATA['version']}", level="info")
             sys.exit(0)
 
     parser.add_argument(

@@ -1,6 +1,4 @@
-import os
 import json
-from os.path import relpath, join
 from setuptools import setup, find_packages
 
 
@@ -8,20 +6,10 @@ def _load_package_json():
     with open('package.json', 'r', encoding='utf-8') as file:
         return json.loads(file.read())
 
-
-def _get_package_data(pkg_dir, data_subdir):
-    result = []
-    for dirpath, _, filenames in os.walk(join(pkg_dir, data_subdir)):
-        for filename in filenames:
-            filepath = join(dirpath, filename)
-            result.append(relpath(filepath, pkg_dir))
-    return result
-
-
 PACKAGE = _load_package_json()
 
 setup(
-    name='qyro',
+    name=PACKAGE['name'],
     version=PACKAGE['version'],
     description=PACKAGE['description'],
     long_description=PACKAGE['long_description'],
@@ -51,7 +39,7 @@ setup(
         'Programming Language :: Python :: 3.12',
     ],
     entry_points={
-        'console_scripts': ['qyro=qyro.__main__:main']
+        'console_scripts': ['qyro=qyro.__main__:main', 'ppg=qyro.__main__:main']
     },
     license=PACKAGE['license'],
     keywords=PACKAGE['keywords'],

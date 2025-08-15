@@ -3,7 +3,7 @@ import textwrap
 import logging
 from .utils import EngineError, EngineMessage  # Import your new classes
 from .cli_engine import _create_arg_parser, _execute_command
-from . import commands  # This line is crucial for registering your commands
+from . import cli_commands  # This line is crucial for registering your commands
 
 class WrappingStreamHandler(logging.StreamHandler):
     """
@@ -50,9 +50,6 @@ def main():
     try:
         _execute_command(parser)
     except EngineError:
-        # El constructor de EngineError ya mostró el mensaje.
-        # Por lo tanto, no necesitamos imprimir nada más.
-        # Simplemente salimos con un código de error.
         sys.exit(1)
     except KeyboardInterrupt:
         EngineMessage.show("Execution canceled by the user.", level="warning")
