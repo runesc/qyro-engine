@@ -1,4 +1,4 @@
-from ..utils import EngineMessage
+from ..utils import EngineMessage, EngineError
 from rich.prompt import Confirm
 from rich.console import Console
 from typing import Dict
@@ -166,5 +166,21 @@ def write_safely_from_template(
             level="error"
         )
 
+def check_existing_project():
+    """
+    Verifies if the 'src' folder exists in the current working directory.
+
+    Raises:
+        ProjectNotFoundError: If the 'src' directory is not found, with
+                              a suggestion to initialize a new project.
+    """
+    project_root = os.getcwd()
+    src_path = os.path.join(project_root, 'src')
+
+    if not os.path.exists(src_path):
+        raise EngineError(
+            "The [bold cyan]'src'[/bold cyan] directory was not found.\nMake sure you are in the project's root directory or"
+            " run the command:\n\n[bold green]'qyro init'[/bold green]\n\nTo create a new one."
+        )
 
 QYRO_METADATA = _load_package_json()

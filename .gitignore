@@ -2,6 +2,9 @@
 test/
 src/
 requirements/
+build/
+dist/
+*.egg-info/
 *.pyc
 *.env
 .DS_Store

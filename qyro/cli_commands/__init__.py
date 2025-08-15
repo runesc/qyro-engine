@@ -1,5 +1,8 @@
+import json
 import sys
+import os
 import pathlib
+import subprocess
 from string import Template
 from getpass import getuser
 from os import makedirs, getcwd
@@ -13,12 +16,22 @@ from rich.table import Table
 from qyro.store import QYRO_INTERNAL_STATE
 from ..cli_engine import CLI
 from ..utils import EngineMessage, EngineError, module_exists
-from ..utils.fs import QYRO_METADATA, replicate_and_filter, write_safely_from_template
+from ..utils.fs import QYRO_METADATA, replicate_and_filter, write_safely_from_template, check_existing_project
 from ..utils.parsers import to_camel_case
-from ..utils.project_reader import get_project_settings
+from ..utils.project_reader import get_project_settings, _find_and_store_settings, _validate_project_structure
 from .templates.component import COMPONENT_TEMPLATE
 
 console = Console()
+
+
+@CLI(help='Show the engine version.')
+def version():
+    """
+    Displays the current version of the Qyro CLI.
+    """
+    EngineMessage.show(f"Qyro v{QYRO_METADATA['version']}", level="info")
+    sys.exit(0)
+
 
 @CLI(help="Initialize a new Qyro project.")
 def init(name: str = '.'):
@@ -31,17 +44,20 @@ def init(name: str = '.'):
 
     # Check if the project already exists
     if exists(project_path + "/src"):
-        raise EngineError(f"Project folder already exists at: [bold]{project_path}[/bold]")
+        raise EngineError(
+            f"Project folder already exists at: [bold]{project_path}[/bold]")
 
     # Welcome message
-    console.print(f"✨ Welcome to [bold green]{QYRO_METADATA['name']} v{QYRO_METADATA['version']}[/bold green] ✨\n")
+    console.print(
+        f"✨ Welcome to [bold green]{QYRO_METADATA['name']} v{QYRO_METADATA['version']}[/bold green] ✨\n")
     console.print(
         "Let's create a new project! This will create a [bold]src/[/bold] directory "
         "with the necessary files and folders.\n"
     )
 
     # Gather project details from the user
-    app = to_camel_case(Prompt.ask("App name", default=name if name != '.' else "MyApp"))
+    app = to_camel_case(Prompt.ask(
+        "App name", default=name if name != '.' else "MyApp"))
     version = Prompt.ask("Version", default="1.0.0")
     default_author = getuser().title()
     author = Prompt.ask("Author", default=default_author)
@@ -80,9 +96,11 @@ def init(name: str = '.'):
     table.add_row("Version:", f"[cyan]{version}[/cyan]")
     table.add_row("Author:", f"[cyan]{author}[/cyan]")
     table.add_row("Qt binding:", f"[cyan]{python_binding}[/cyan]")
-    table.add_row("Mac bundle identifier:", f"[cyan]{mac_bundle_identifier or '(none)'}[/cyan]")
+    table.add_row("Mac bundle identifier:",
+                  f"[cyan]{mac_bundle_identifier or '(none)'}[/cyan]")
 
-    console.print(Panel(table, title="[bold]Please confirm your settings[/bold]", border_style="blue"))
+    console.print(Panel(
+        table, title="[bold]Please confirm your settings[/bold]", border_style="blue"))
 
     # Confirm with the user
     if not Confirm.ask("Continue?"):
@@ -90,19 +108,24 @@ def init(name: str = '.'):
         return
 
     # Check if the selected Qt binding is installed
-    console.print(f"\n🔎 Checking if [bold cyan]{python_binding}[/bold cyan] is installed...")
+    console.print(
+        f"\n🔎 Checking if [bold cyan]{python_binding}[/bold cyan] is installed...")
 
     if not module_exists(python_binding):
         EngineMessage.show(f"Installing {python_binding}...", level="info")
+        subprocess.run([sys.executable, '-m', 'pip',
+                       'install', python_binding])
 
-    console.print(f"\n✅ [bold cyan]{python_binding}[/bold cyan] is installed!\n")
+    console.print(
+        f"\n✅ [bold cyan]{python_binding}[/bold cyan] is installed!\n")
 
     # Create project directories
     if project_path != getcwd():
         makedirs(project_path, exist_ok=True)
     src_path = join(project_path, "src")
     makedirs(src_path, exist_ok=True)
-    console.print(f"📂 Project folder '{name}/' created at: [bold]{project_path}[/bold]")
+    console.print(
+        f"📂 Project folder '{name}/' created at: [bold]{project_path}[/bold]")
 
     # Set internal state
     QYRO_INTERNAL_STATE.set_config('project_dir', project_path)
@@ -110,7 +133,8 @@ def init(name: str = '.'):
     # Locate boilerplate templates
     template_dir = pathlib.Path(__file__).resolve().parent / 'boilerplate'
     if not template_dir.exists():
-        raise EngineError(f"Template directory not found at: [bold]{template_dir}[/bold]")
+        raise EngineError(
+            f"Template directory not found at: [bold]{template_dir}[/bold]")
 
     # Copy boilerplate files and apply placeholder replacements
     replicate_and_filter(
@@ -138,7 +162,8 @@ def init(name: str = '.'):
         f"Now you can run:\n\n    [bold cyan]{QYRO_METADATA['name']} start[/bold cyan]"
     )
 
-@CLI(help="Create a component or a new view in project")
+
+@CLI(help="Create a new component or view")
 def create(type: str = None, name: str = None, inherit: str = None):
     """Creates a new component or view in the project.
 
@@ -153,10 +178,12 @@ def create(type: str = None, name: str = None, inherit: str = None):
         raise EngineError("The 'name' argument is required.")
 
     if type is None:
-        raise EngineError("The 'type' argument is required and must be either 'component' or 'view'.")
+        raise EngineError(
+            "The 'type' argument is required and must be either 'component' or 'view'.")
 
     if type.lower() not in ['component', 'view']:
-        raise EngineError("The 'type' argument must be either 'component' or 'view'.")
+        raise EngineError(
+            "The 'type' argument must be either 'component' or 'view'.")
 
     name = to_camel_case(name)
     binding = get_project_settings('binding')
@@ -179,10 +206,39 @@ def create(type: str = None, name: str = None, inherit: str = None):
         item_type=type
     )
 
-@CLI(help='Show the engine version.')
-def version():
+
+@CLI(help="Starts the application")
+def start():
     """
-    Displays the current version of the Qyro CLI.
+    Starts the Qyro application.
     """
-    EngineMessage.show(f"Qyro v{QYRO_METADATA['version']}", level="info")
-    sys.exit(0)
+    check_existing_project()
+    _find_and_store_settings()
+    project_dir = _validate_project_structure()
+
+    if not module_exists('PySide6') and not module_exists('PyQt6') and not module_exists('PyQt5') and not module_exists('PySide2'):
+        raise EngineError(
+            "At least one of the following modules must be installed:"
+            " [bold cyan]PySide6[/bold cyan], [bold cyan]PyQt6[/bold cyan], [bold cyan]PyQt5[/bold cyan], [bold cyan]PySide2[/bold cyan]"
+            "\n\nYou can install them using pip:"
+            "\n\n[bold green]pip install PySide6[/bold green]"
+            "\n[bold green]pip install PySide2[/bold green]"
+            "\n[bold green]pip install PyQt6[/bold green]"
+            "\n[bold green]pip install PyQt5[/bold green]"
+            "\n\nIf you have already installed one of these modules, make sure it is in your PYTHONPATH."
+        )
+    env = os.environ.copy()
+    src_path = str(pathlib.Path(project_dir) / "src" / "main" / "python")
+    old_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_path}{os.pathsep}{old_pythonpath}" if old_pythonpath else src_path
+
+    main_module = QYRO_INTERNAL_STATE.get_config("main_module")
+
+    if not main_module:
+        raise EngineError("The 'main_module' setting is missing. Check your project settings.")
+    try:
+        subprocess.run([sys.executable, main_module], env=env, check=True)
+    except subprocess.CalledProcessError as e:
+        raise EngineError(f"Application failed with exit code {e.returncode}") from e
+    except FileNotFoundError:
+        raise EngineError("Python interpreter not found. Make sure Python is correctly installed.")
