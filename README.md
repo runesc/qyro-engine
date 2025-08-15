@@ -1,6 +1,8 @@
 <p align="center">
-  <img src="https://ik.imagekit.io/kummiktgaiq/ppg/logo_OE3b6z79V.png" alt="Qyro Logo" width="50%">
+  <img src="https://ik.imagekit.io/kummiktgaiq/ppg/Qyro-logo.svg?updatedAt=1755215983279" alt="Qyro Logo" width="50%">
 </p>
+
+
 
 <h3 align="center">Qyro - <b>Q</b>t p<b>y</b>thon <b>R</b>esource <b>O</b>rchestrator</h3>
 
