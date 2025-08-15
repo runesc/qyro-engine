@@ -25,7 +25,6 @@ It allows you to compile Python/Qt applications into standalone executables with
 - **Installer Creation**: Automatically generate platform-specific installers.
 - **Resource Management**: Include assets, icons, and other files seamlessly.
 - **CLI Driven**: Full project management via a simple command-line interface.
-- **Hot Error & Info Messages**: Rich console messages for errors, warnings, info, debug, and critical notifications.
 
 ---
 
@@ -97,14 +96,5 @@ python setup.py install
 
 ### License
 
-Qyro code released under the [GPL v3 License](#).
+Qyro code released under the [MIT License](https://github.com/runesc/qyro-engine?tab=MIT-1-ov-file#readme).
 Docs released under [Creative Commons](https://creativecommons.org/licenses/by/3.0/).
-
-```
-
-Si quieres, puedo hacer una **versión todavía más profesional**, incluyendo:
-- Ejemplo completo de proyecto Qyro
-- Cómo empaquetar recursos y assets
-- Mensajes de consola con **EngineMessage**
-- Diferencias frente a FBS/pyinstaller
-```
