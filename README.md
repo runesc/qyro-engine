@@ -96,5 +96,5 @@ python setup.py install
 
 ### License
 
-Qyro code released under the [MIT License](https://github.com/runesc/qyro-engine?tab=MIT-1-ov-file#readme).
+Qyro code released under the [MIT License](https://github.com/runesc/qyro-engine/blob/main/LICENSE).
 Docs released under [Creative Commons](https://creativecommons.org/licenses/by/3.0/).
