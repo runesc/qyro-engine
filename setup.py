@@ -3,8 +3,6 @@ import os
 from setuptools import setup, find_packages
 from os.path import relpath, join
 
-
-
 def _load_package_json():
     with open('package.json', 'r', encoding='utf-8') as file:
         return json.loads(file.read())
