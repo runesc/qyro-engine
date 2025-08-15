@@ -17,6 +17,7 @@ class EngineMessage:
         "debug": ("🛠️", "bold magenta"),
         "critical": ("🚨", "bold red on white"),
         "hot": ("🔥", "bold red"),
+        "success": ("✅", "bold green"),
     }
 
     @classmethod

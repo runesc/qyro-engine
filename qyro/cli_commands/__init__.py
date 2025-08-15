@@ -1,20 +1,22 @@
 import sys
 import pathlib
+from string import Template
 from getpass import getuser
 from os import makedirs, getcwd
 from os.path import join, exists, abspath
-from questionary import select
+from questionary import select, text, confirm
 from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.table import Table
+from qyro.store import QYRO_INTERNAL_STATE
 from ..cli_engine import CLI
 from ..utils import EngineMessage, EngineError, module_exists
-from ..utils.fs import QYRO_METADATA, replicate_and_filter
+from ..utils.fs import QYRO_METADATA, replicate_and_filter, write_safely_from_template
 from ..utils.parsers import to_camel_case
-from ..utils.console import clear_console
-from qyro.store import QYRO_INTERNAL_STATE
+from ..utils.project_reader import get_project_settings
+from .templates.component import COMPONENT_TEMPLATE
 
 console = Console()
 
@@ -129,11 +131,53 @@ def init(name: str = '.'):
         ]
     )
 
+    # TODO: Mensaje que cambie dinámicamente si hay --name para indicar que primero se mueva a la carpeta del proyecto
+
     console.print(
         f"\n🎉 [bold green]Project created successfully at {project_path}/ directory 🎉[/bold green]\n"
         f"Now you can run:\n\n    [bold cyan]{QYRO_METADATA['name']} start[/bold cyan]"
     )
 
+@CLI(help="Create a component or a new view in project")
+def create(type: str = None, name: str = None, inherit: str = None):
+    """Creates a new component or view in the project.
+
+    Args:
+        type (str, optional): The type of the item to create. Defaults to 'component'.
+        name (str, optional): The name of the item to create. Defaults to None.
+        inherit (str, optional): The name of the component to inherit from. Defaults to None.
+    """
+
+    # validate obligatory args (type, name)
+    if not name:
+        raise EngineError("The 'name' argument is required.")
+
+    if type is None:
+        raise EngineError("The 'type' argument is required and must be either 'component' or 'view'.")
+
+    if type.lower() not in ['component', 'view']:
+        raise EngineError("The 'type' argument must be either 'component' or 'view'.")
+
+    name = to_camel_case(name)
+    binding = get_project_settings('binding')
+
+    if not inherit:
+        inherit = text("Inherit from: ", default="QtWidget").ask()
+
+    template = Template(COMPONENT_TEMPLATE)
+    code = template.substitute(Binding=binding, Name=name, Widget=inherit)
+
+    project_path = pathlib.Path.cwd()
+    type_lower = type.lower()
+    path = project_path / "src" / "main" / "python" / f"{type_lower}s"
+    file_path = path / f"{name}.py"
+
+    write_safely_from_template(
+        file_path=file_path,
+        code=code,
+        item_name=name,
+        item_type=type
+    )
 
 @CLI(help='Show the engine version.')
 def version():

@@ -1,3 +1,6 @@
+from ..utils import EngineMessage
+from rich.prompt import Confirm
+from rich.console import Console
 from typing import Dict
 import re
 import pathlib
@@ -7,6 +10,7 @@ import json
 from typing import Dict, List, Tuple, Union
 from qyro.store import QYRO_INTERNAL_STATE
 
+console = Console()
 
 def _load_package_json() -> dict:
     """
@@ -56,8 +60,6 @@ def _get_files_to_replicate(
                     files_to_copy.append((item, dest_path))
     return files_to_copy
 
-
-# ... (código anterior) ...
 
 def replicate_and_filter(
     source_path: Union[str, pathlib.Path],
@@ -128,6 +130,41 @@ def resolve_path(relative_path: str, replacements: Dict[str, str] = None) -> pat
 
     # 3. Safely join and resolve the full path
     return pathlib.Path(project_dir) / expanded_path_str
+
+
+def write_safely_from_template(
+    file_path: pathlib.Path,
+    code: str,
+    item_name: str,
+    item_type: str
+) -> None:
+    """
+    Escribe el código en un archivo, solicitando confirmación si el archivo ya existe.
+
+    Args:
+        file_path (pathlib.Path): La ruta completa del archivo a crear.
+        code (str): El contenido del archivo.
+        item_name (str): El nombre del componente/vista.
+        item_type (str): El tipo de item ('componente' o 'vista').
+    """
+    if file_path.exists():
+        if not Confirm.ask(f"The file [bold]{file_path.name}[/bold] already exists. Overwrite?"):
+            EngineMessage.show("Creation aborted by user.", level="warning")
+            return
+
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, "w") as file:
+            file.write(code)
+        EngineMessage.show(
+            f"{item_type.capitalize()} [bold]{item_name}[/bold] created in: [cyan]{file_path}[/cyan]",
+            level="success"
+        )
+    except Exception as e:
+        EngineMessage.show(
+            f"An error occurred while writing the file: {e}",
+            level="error"
+        )
 
 
 QYRO_METADATA = _load_package_json()

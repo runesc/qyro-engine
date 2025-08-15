@@ -1,5 +1,7 @@
 .vscode/
 test/
+src/
+requirements/
 *.pyc
 *.env
 .DS_Store
