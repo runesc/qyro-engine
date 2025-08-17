@@ -1,6 +1,6 @@
 import sys
 from qyro_engine.core.${python_bindings} import AppEngine
-from qyro_engine.core.base import Component, bootstrap
+from qyro_engine.component import Component, bootstrap
 from qyro_engine.utils import app_is_frozen
 from qyro_engine.devtools.reloader import hot_reloading
 from qyro_engine.store import Pydux

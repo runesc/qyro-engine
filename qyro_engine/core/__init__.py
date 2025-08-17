@@ -1,144 +1,133 @@
+import importlib
 from functools import lru_cache, wraps
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Any
 from collections import namedtuple
 from qyro_engine.utils.platform import windows_based, mac_based
 from qyro_engine.utils import app_is_frozen
 from qyro_engine._signal import QtSignalHandler
 from qyro_engine._frozen import load_frozen_build_settings, get_frozen_resource_dirs
-from qyro_engine._source import get_project_dir, get_resource_dirs, load_build_settings
-from qyro_engine.utils.resources import ResourceLocator
+from qyro_engine._source import find_project_root_directory, get_project_resource_locations, load_build_configurations
+from qyro_engine.utils.resources import FileLocator
 from qyro_engine.exceptions.excepthooks import _Excepthook, StderrExceptionHandler
+import sys
 
 _T = TypeVar('_T')
-_CallableGetter = Callable[..., _T]
 
-
-def lazy_property(getter: _CallableGetter) -> property:
-    """
-    A decorator for properties that computes a function's value only once
-    and then caches the result for reuse.
-    """
-    @wraps(getter)
+def lazy_property(func: Callable[[Any], _T]) -> _T:
+    @wraps(func)
     @lru_cache(maxsize=1)
-    def wrapper(*args, **kwargs):
-        return getter(*args, **kwargs)
-
+    def wrapper(self):
+        return func(self)
     return property(wrapper)
 
-QtBinding = namedtuple('QtBinding', ('QApplication', 'QIcon', 'QAbstractSocket'))
+QtBinding = namedtuple('QtBinding', ['QApplication', 'QIcon', 'QAbstractSocket'])
+available_bindings = {}
 
-available_bindings = {
-    'PySide6': QtBinding(
-        QApplication='PySide6.QtWidgets.QApplication',
-        QIcon='PySide6.QtGui.QIcon',
-        QAbstractSocket='PySide6.QtNetwork.QAbstractSocket'
-    ),
-    'PyQt6': QtBinding(
-        QApplication='PyQt6.QtWidgets.QApplication',
-        QIcon='PyQt6.QtGui.QIcon',
-        QAbstractSocket='PyQt6.QtNetwork.QAbstractSocket'
-    ),
-    'PySide2': QtBinding(
-        QApplication='PySide2.QtWidgets.QApplication',
-        QIcon='PySide2.QtGui.QIcon',
-        QAbstractSocket='PySide2.QtNetwork.QAbstractSocket'
-    ),
-    'PyQt5': QtBinding(
-        QApplication='PyQt5.QtWidgets.QApplication',
-        QIcon='PyQt5.QtGui.QIcon',
-        QAbstractSocket='PyQt5.QtNetwork.QAbstractSocket'
-    ),
-}
+def load_qt_binding(binding_name: str) -> QtBinding:
+    try:
+        if binding_name == 'PyQt5':
+            widgets = importlib.import_module('PyQt5.QtWidgets')
+            gui = importlib.import_module('PyQt5.QtGui')
+            network = importlib.import_module('PyQt5.QtNetwork')
+        elif binding_name == 'PyQt6':
+            widgets = importlib.import_module('PyQt6.QtWidgets')
+            gui = importlib.import_module('PyQt6.QtGui')
+            network = importlib.import_module('PyQt6.QtNetwork')
+        elif binding_name == 'PySide2':
+            widgets = importlib.import_module('PySide2.QtWidgets')
+            gui = importlib.import_module('PySide2.QtGui')
+            network = importlib.import_module('PySide2.QtNetwork')
+        elif binding_name == 'PySide6':
+            widgets = importlib.import_module('PySide6.QtWidgets')
+            gui = importlib.import_module('PySide6.QtGui')
+            network = importlib.import_module('PySide6.QtNetwork')
+        else:
+            raise ValueError(f"Unknown binding: {binding_name}")
+    except ModuleNotFoundError as e:
+        raise ImportError(f"Cannot load Qt binding '{binding_name}'. Module not found: {e}")
+
+    return QtBinding(
+        QApplication=getattr(widgets, 'QApplication'),
+        QIcon=getattr(gui, 'QIcon'),
+        QAbstractSocket=getattr(network, 'QAbstractSocket')
+    )
 
 class _AppEngine:
     """
-    Entry point for your Qt application.
-
-    This class initializes the QApplication, sets up exception handling,
-    signal handling, resource management, and build settings.
+    Base engine para apps Qt con bindings dinámicos.
     """
+    preferred_binding = 'PyQt6'
+    _qt_binding = None
 
-    def __init__(self):
-        # Install global exception hook
-        if self.excepthook:
-            self.excepthook.install()
+    def __init__(self, argv: list[str] = None):
+        if argv is None:
+            argv = sys.argv
+        self._argv = argv
 
-        # Instantiate the QApplication early
-        self.app
+        # Carga el binding
+        if self._qt_binding is None:
+            self._qt_binding = self.preferred_binding
+        available_bindings[self._qt_binding] = load_qt_binding(self._qt_binding)
 
-        # Install Ctrl+C handler on non-Windows systems
+        # Creamos la app
+        self.app = self.get_application_instance
+
+        # Configuramos icono si aplica
+        if self.set_app_icon:
+            self.app.setWindowIcon(self.set_app_icon)
+
+        # Manejo de excepciones y señales
+        self.exception_handler = StderrExceptionHandler()
+        self.install_exception_hook()
+        self.setup_signal_handler()
+
+    @staticmethod
+    def _validate_qt_binding(binding_name: str, binding: QtBinding):
+        if not isinstance(binding, QtBinding):
+            raise TypeError(f"Invalid Qt binding type for '{binding_name}'")
+        if binding.QApplication is None:
+            raise ValueError(f"QApplication class not found for binding '{binding_name}'")
+
+    @lazy_property
+    def get_application_instance(self):
+        binding = available_bindings[self._qt_binding]
+        self._validate_qt_binding(self._qt_binding, binding)
+        build_settings = self.load_build_settings()
+
+        app = binding.QApplication(self._argv)
+        app.setApplicationName(build_settings.get('app_name', 'App'))
+        app.setApplicationVersion(build_settings.get('version', '1.0'))
+        return app
+
+    @lazy_property
+    def get_resource_locator(self):
+        if app_is_frozen():
+            resource_dirs = get_frozen_resource_dirs()
+        else:
+            project_root = find_project_root_directory()
+            resource_dirs = get_project_resource_locations(project_root)
+        return FileLocator(resource_dirs)
+
+    def _resource(self, *rel_path):
+        return self.get_resource_locator.find(*rel_path)
+
+    @lazy_property
+    def set_app_icon(self):
+        if mac_based():
+            return None
+        binding = available_bindings[self._qt_binding]
+        return binding.QIcon(self._resource('Icon.ico'))
+
+    def install_exception_hook(self):
+        _Excepthook(self.exception_handler)
+
+    def setup_signal_handler(self):
         if not windows_based():
-            self._signal_handler = QtSignalHandler(self.app, self._qt_binding.QAbstractSocket)
-            self._signal_handler.install()
+            QtSignalHandler()
 
-        # Set application icon if available
-        if self.app_icon:
-            self.app.setWindowIcon(self.app_icon)
-
-    @lazy_property
-    def app(self):
-        """
-        The global Qt QApplication instance. Can be overridden to use
-        a custom subclass.
-        """
-        result = self._qt_binding.QApplication([])
-        result.setApplicationName(self.build_settings['app_name'])
-        result.setApplicationVersion(self.build_settings['version'])
-        return result
-
-    @lazy_property
-    def build_settings(self):
-        """
-        Returns the build settings dictionary.
-        """
+    def load_build_settings(self) -> dict:
         if app_is_frozen():
             return load_frozen_build_settings()
-        return load_build_settings(self._project_dir)
-
-    @lazy_property
-    def app_icon(self):
-        """
-        Returns the application icon (not used on macOS).
-        """
-        if not mac_based():
-            return self._qt_binding.QIcon(self.get_resource('Icon.ico'))
-
-    @lazy_property
-    def excepthook(self):
-        """
-        Returns the global exception hook. Override to provide custom hooks.
-        """
-        return _Excepthook(self.exception_handlers)
-
-    @lazy_property
-    def exception_handlers(self):
-        """
-        List of exception handlers to invoke on errors.
-        """
-        return [StderrExceptionHandler()]
-
-    @lazy_property
-    def _qt_binding(self):
-        """
-        Subclasses must provide a Qt binding module, e.g., PyQt5 or PySide6.
-        """
-        raise NotImplementedError("Subclasses must define `_qt_binding`")
-
-    @lazy_property
-    def _resource_locator(self):
-        """
-        Returns a ResourceLocator for the application's resources.
-        """
-        resource_dirs = get_frozen_resource_dirs() if app_is_frozen() else get_resource_dirs(self._project_dir)
-        return ResourceLocator(resource_dirs)
-
-    @lazy_property
-    def _project_dir(self):
-        assert not app_is_frozen(), 'Only available when running from source'
-        return get_project_dir()
-
-    def get_resource(self, *rel_path):
-        """
-        Returns the absolute path to a resource.
-        """
-        return self._resource_locator.locate(*rel_path)
+        else:
+            project_root = find_project_root_directory()
+            return load_build_configurations(project_root)

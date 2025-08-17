@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 from qyro_engine.exceptions import EngineError
-from qyro_engine._qyro import get_default_profiles, get_core_settings
+from qyro_engine._qyro import generate_core_profiles, get_config_path, extract_public_settings
 from qyro_engine._settings import load_json_configs
 
 
-def get_project_dir():
+def find_project_root_directory():
     start_path = Path(os.getcwd())
     while start_path != start_path.parent:
         if (start_path / 'src' / 'main' / 'python').is_dir():
@@ -14,26 +14,31 @@ def get_project_dir():
         "Could not determine the project base directory. Expected 'src/main/python'.")
 
 
-def get_resource_dirs(project_base_dir):
+def get_project_resource_locations(project_base_dir):
 
     icons_dir = Path(project_base_dir) / 'src' / 'main' / 'icons'
     resources_base = Path(project_base_dir) / 'src' / 'main' / 'resources'
 
     resource_dirs = [str(icons_dir)]
-    profiles = get_default_profiles()
+    profiles = generate_core_profiles()
 
     for profile in reversed(profiles):
         resource_dirs.append(str(resources_base / profile))
 
     return resource_dirs
 
-def load_build_settings(project_base_dir):
-    core_settings = get_core_settings(project_base_dir)
-    profiles = get_default_profiles()
+def load_build_configurations(project_base_dir):
+    core_settings = get_config_path(project_base_dir)
+    profiles = generate_core_profiles()
 
     json_config_paths = _get_settings_paths(project_base_dir, profiles)
-    # return filter_public_settings(all_settings)
-    return load_json_configs(json_config_paths, core_settings)
+    settings = load_json_configs(json_config_paths, core_settings)
+    filtered_settings = extract_public_settings(settings)
+
+    if not filtered_settings:
+       return settings
+
+    return filtered_settings
 
 
 def _get_settings_paths(project_base_dir, profiles):

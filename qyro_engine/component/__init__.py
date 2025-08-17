@@ -1,3 +1,9 @@
+from qyro_engine.core import lazy_property
+from qyro_engine.utils import app_is_frozen
+from qyro_engine.utils.resources import FileLocator
+from qyro_engine._frozen import get_frozen_resource_dirs, load_frozen_build_settings
+from qyro_engine._source import find_project_root_directory, get_project_resource_locations, load_build_configurations
+
 try:
     from PySide6.QtWidgets import QWidget, QApplication
 except ImportError:
@@ -66,6 +72,32 @@ class Component:
 
     def find(self, type, name):
         return self.findChild(type, name)
+
+    @lazy_property
+    def build_settings(self) -> dict:
+        if app_is_frozen():
+            return load_frozen_build_settings()
+        else:
+            project_root = find_project_root_directory()
+            return load_build_configurations(project_root)
+
+    @lazy_property
+    def _project_dir(self):
+        assert not app_is_frozen(), 'Only available when running from source'
+        return find_project_root_directory()
+
+    @lazy_property
+    def get_resource_locator(self):
+        if app_is_frozen():
+            resource_dirs = get_frozen_resource_dirs()
+        else:
+            project_root = find_project_root_directory()
+            resource_dirs = get_project_resource_locations(project_root)
+
+        return FileLocator(resource_dirs)
+
+    def get_resource(self, *rel_path):
+        return self.get_resource_locator.find(*rel_path)
 
     def _clear_widgets(self):
         """

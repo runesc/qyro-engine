@@ -1,37 +1,38 @@
-import os
+from pathlib import Path
+from qyro_engine.exceptions import EngineError
 
-class ResourceLocator:
+class FileLocator:
     """
-    A class to locate files within a list of base directories.
+    Handles searching for files across multiple base directories.
     """
 
-    def __init__(self, base_paths):
+    def __init__(self, directories):
         """
-        Initializes ResourceLocator with a list of base paths.
+        Initialize the locator with a list of base directories.
 
         Args:
-            base_paths (list): A list of base directory paths.
+            directories (list[Path | str]): List of directories to search in.
         """
-        self.base_paths = base_paths
+        # Convert all to Path objects
+        self.directories = [Path(d) for d in directories]
 
-    def locate(self, *rel_path):
+    def find(self, *relative_parts):
         """
-        Searches for a file by combining the base paths with the relative path.
+        Locate a file by combining base directories with the given relative path.
 
         Args:
-            *rel_path (str): The components of the file's relative path.
+            *relative_parts: Components of the file's relative path.
 
         Returns:
-            str: The real, absolute path of the file if found.
+            Path: Absolute path to the located file.
 
         Raises:
-            FileNotFoundError: If the file is not found in any of the base paths.
+            FileNotFoundError: If the file cannot be found in any base directory.
         """
-        combined_rel_path = os.path.join(*rel_path)
-        for base_path in self.base_paths:
-            full_path = os.path.join(base_path, combined_rel_path)
-            if os.path.exists(full_path):
-                return os.path.realpath(full_path)
+        target_path = Path(*relative_parts)
+        for base in self.directories:
+            candidate = base / target_path
+            if candidate.exists():
+                return str(candidate.resolve())
 
-        raise FileNotFoundError(
-            f"The file '{combined_rel_path}' was not found in any of the base paths.")
+        raise EngineError(f"Cannot find file: {target_path}")
