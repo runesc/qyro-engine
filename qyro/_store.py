@@ -3,7 +3,7 @@ import copy
 from typing import Dict, List, Tuple
 
 
-class ProjectState:
+class _Store:
     """
     A class to manage the global state of the project in a modular way.
     """
@@ -22,7 +22,7 @@ class ProjectState:
     def add_command(self, name: str, command: any):
         self._available_commands[name] = command
 
-    def get_state_copy(self) -> Tuple[Dict, List, Dict]:
+    def get_state(self) -> Tuple[Dict, List, Dict]:
         """Returns a deep copy of the current project state."""
         return (
             copy.deepcopy(self._configuration),
@@ -41,5 +41,29 @@ class ProjectState:
         self._available_commands.clear()
         self._available_commands.update(commands)
 
+    def mount_profile(self, profile_name: str) -> bool:
+        """
+        Loads a profile by name, updating the configuration and loaded profiles.
+        """
+        if profile_name not in self._loaded_profiles:
+            self._loaded_profiles.append(profile_name)
+            return True
+        return False
 
-QYRO_INTERNAL_STATE = ProjectState()
+    def umount_profile(self, profile_name: str) -> bool:
+        """
+        Unloads a profile by name, updating the configuration and loaded profiles.
+        """
+        if profile_name in self._loaded_profiles:
+            self._loaded_profiles.remove(profile_name)
+            return True
+        return False
+
+    def is_profile_loaded(self, profile_name: str) -> bool:
+        """
+        Checks if a profile is currently loaded.
+        """
+        return profile_name in self._loaded_profiles
+
+
+QYRO_INTERNAL_STATE = _Store()

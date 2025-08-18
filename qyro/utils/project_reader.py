@@ -1,6 +1,6 @@
 import json
 import pathlib
-from qyro.store import QYRO_INTERNAL_STATE
+from qyro._store import QYRO_INTERNAL_STATE
 from . import EngineError
 
 def _read_project_settings() -> dict:
@@ -71,9 +71,9 @@ def _find_and_store_settings():
         with open(project_dir / "src" / "build" / "settings" / "base.json", "r", encoding="utf-8") as f:
             config = json.load(f)
             for k, v in config.items():
-                QYRO_INTERNAL_STATE.set_config(k, v)
+                QYRO_INTERNAL_STATE.set_config(k,v)
 
-        QYRO_INTERNAL_STATE.set_config("project_dir", str(project_dir))
+        QYRO_INTERNAL_STATE.set_config('settings', {'project_dir': str(project_dir)})
 
     except (IOError, json.JSONDecodeError) as e:
         raise EngineError(f"Failed to load project settings: {e}") from e
@@ -86,7 +86,7 @@ def _validate_project_structure():
     Returns:
         pathlib.Path: The path to the project's root directory.
     """
-    project_dir = QYRO_INTERNAL_STATE.get_config("project_dir")
+    project_dir = QYRO_INTERNAL_STATE.get_config("settings")['project_dir']
     if not project_dir:
         raise EngineError("Project directory is not set. Run 'init' first.")
 

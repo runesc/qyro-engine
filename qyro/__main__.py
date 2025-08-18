@@ -1,9 +1,11 @@
 import sys
 import textwrap
 import logging
-from .utils import EngineError, EngineMessage  # Import your new classes
+import qyro
+from os import getcwd
+from .utils import EngineError, EngineMessage
 from .cli_engine import _create_arg_parser, _execute_command
-from . import cli_commands  # This line is crucial for registering your commands
+from . import cli_commands
 
 class WrappingStreamHandler(logging.StreamHandler):
     """
@@ -44,6 +46,9 @@ def main():
     parses commands, and handles major exceptions.
     """
     _setup_logging()
+
+    project_dir = getcwd()
+    qyro.init(project_dir)
 
     parser = _create_arg_parser()
 

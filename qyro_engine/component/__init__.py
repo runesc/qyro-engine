@@ -30,7 +30,7 @@ def bootstrap(cls):
         self.render_()
         self.component_did_mount()
         self.set_styles()
-        self.responsive_UI()
+        self.responsive()
 
     cls.__init__ = __init__
     return cls
@@ -60,11 +60,11 @@ class Component:
     def render_(self): pass
 
     def resizeEvent(self, e=None):
-        self.responsive_UI()
+        self.responsive()
 
     def component_did_mount(self): pass
     def set_styles(self, path=None): pass
-    def responsive_UI(self): pass
+    def responsive(self): pass
 
     def destroyComponent(self):
         self.setParent(None)
@@ -141,7 +141,7 @@ class Component:
             self._clear_widgets()
             self.allow_bg()
             self.render_()
-            self.responsive_UI()
+            self.responsive()
             self.component_did_mount()
             self.set_styles()
 

@@ -7,7 +7,7 @@ def get_config_path(working_directory: str) -> Dict[str, str]:
     """
     Receives a working directory and returns a dictionary containing that path.
     """
-    return {"config_path": working_directory}
+    return {"project_dir": working_directory}
 
 
 def generate_core_profiles() -> List[str]:

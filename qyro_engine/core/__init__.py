@@ -2,7 +2,7 @@ import importlib
 from functools import lru_cache, wraps
 from typing import Callable, TypeVar, Any
 from collections import namedtuple
-from qyro_engine.utils.platform import windows_based, mac_based
+from qyro.utils.platform import windows_based, mac_based
 from qyro_engine.utils import app_is_frozen
 from qyro_engine._signal import QtSignalHandler
 from qyro_engine._frozen import load_frozen_build_settings, get_frozen_resource_dirs
@@ -12,6 +12,8 @@ from qyro_engine.exceptions.excepthooks import _Excepthook, StderrExceptionHandl
 import sys
 
 _T = TypeVar('_T')
+QtBinding = namedtuple('QtBinding', ['QApplication', 'QIcon', 'QAbstractSocket'])
+available_bindings = {}
 
 def lazy_property(func: Callable[[Any], _T]) -> _T:
     @wraps(func)
@@ -19,9 +21,6 @@ def lazy_property(func: Callable[[Any], _T]) -> _T:
     def wrapper(self):
         return func(self)
     return property(wrapper)
-
-QtBinding = namedtuple('QtBinding', ['QApplication', 'QIcon', 'QAbstractSocket'])
-available_bindings = {}
 
 def load_qt_binding(binding_name: str) -> QtBinding:
     try:
@@ -56,7 +55,7 @@ class _AppEngine:
     """
     Base engine para apps Qt con bindings dinámicos.
     """
-    preferred_binding = 'PyQt6'
+    preferred_binding = 'PySide6'
     _qt_binding = None
 
     def __init__(self, argv: list[str] = None):
@@ -126,7 +125,7 @@ class _AppEngine:
             QtSignalHandler()
 
     def load_build_settings(self) -> dict:
-        if app_is_frozen():
+        if not app_is_frozen():
             return load_frozen_build_settings()
         else:
             project_root = find_project_root_directory()

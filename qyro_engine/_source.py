@@ -45,7 +45,7 @@ def _get_settings_paths(project_base_dir, profiles):
 
     paths = []
     default_settings_dir = Path(os.path.dirname(
-        __file__)) / '..' / 'engine' / '_defaults'
+        __file__)) / '..' / 'qyro' / '_default_settings'
 
     for profile in profiles:
         # Ruta predeterminada del sistema
@@ -65,7 +65,7 @@ def _get_settings_paths(project_base_dir, profiles):
 
 def default_path(path_str):
     defaults_dir = os.path.normpath(os.path.join(
-        os.path.dirname(__file__), '..', 'engine', '_defaults'))
+        os.path.dirname(__file__), '..', 'qyro', '_default_settings'))
     return path(defaults_dir, path_str)
 
 

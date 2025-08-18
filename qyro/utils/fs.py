@@ -8,7 +8,7 @@ import shutil
 import os
 import json
 from typing import Dict, List, Tuple, Union
-from qyro.store import QYRO_INTERNAL_STATE
+from qyro._store import QYRO_INTERNAL_STATE
 
 console = Console()
 
@@ -182,5 +182,6 @@ def check_existing_project():
             "The [bold cyan]'src'[/bold cyan] directory was not found.\nMake sure you are in the project's root directory or"
             " run the command:\n\n[bold green]'qyro init'[/bold green]\n\nTo create a new one."
         )
+    return True
 
 QYRO_METADATA = _load_package_json()

@@ -31,7 +31,7 @@ class ${app_name}(QMainWindow, Component, Pydux):
     def render_(self):
        QLabel('Hello World!', parent=self)
 
-    def responsive_UI(self):
+    def responsive(self):
         self.setMinimumSize(640, 480)
 
 

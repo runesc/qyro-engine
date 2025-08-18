@@ -1,28 +1,29 @@
-import json
 import sys
 import os
 import pathlib
 import subprocess
+from os import getcwd
 from string import Template
 from getpass import getuser
 from os import makedirs, getcwd
 from os.path import join, exists, abspath
-from questionary import select, text, confirm
+from questionary import select, text
 from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.table import Table
-from qyro.store import QYRO_INTERNAL_STATE
-from ..cli_engine import CLI
-from ..utils import EngineMessage, EngineError, module_exists
-from ..utils.fs import QYRO_METADATA, replicate_and_filter, write_safely_from_template, check_existing_project
-from ..utils.parsers import to_camel_case
-from ..utils.project_reader import get_project_settings, _find_and_store_settings, _validate_project_structure
+from qyro._store import QYRO_INTERNAL_STATE
 from .templates.component import COMPONENT_TEMPLATE
+from qyro.cli_engine import CLI
+from qyro.utils import EngineMessage, EngineError, module_exists
+from qyro.utils.fs import QYRO_METADATA, replicate_and_filter, write_safely_from_template, check_existing_project
+from qyro.utils.parsers import to_camel_case
+from qyro.utils.project_reader import get_project_settings, _find_and_store_settings, _validate_project_structure
+from qyro.utils.helpers import valid_version
+from qyro.pipelines import get_freezer
 
 console = Console()
-
 
 @CLI(help='Show the engine version.')
 def version():
@@ -126,9 +127,6 @@ def init(name: str = '.'):
     makedirs(src_path, exist_ok=True)
     console.print(
         f"📂 Project folder '{name}/' created at: [bold]{project_path}[/bold]")
-
-    # Set internal state
-    QYRO_INTERNAL_STATE.set_config('project_dir', project_path)
 
     # Locate boilerplate templates
     template_dir = pathlib.Path(__file__).resolve().parent / 'boilerplate'
@@ -235,10 +233,54 @@ def start():
     main_module = QYRO_INTERNAL_STATE.get_config("main_module")
 
     if not main_module:
-        raise EngineError("The 'main_module' setting is missing. Check your project settings.")
+        raise EngineError(
+            "The 'main_module' setting is missing. Check your project settings.")
     try:
         subprocess.run([sys.executable, main_module], env=env, check=True)
     except subprocess.CalledProcessError as e:
-        raise EngineError(f"Application failed with exit code {e.returncode}") from e
+        raise EngineError(
+            f"Application failed with exit code {e.returncode}") from e
     except FileNotFoundError:
-        raise EngineError("Python interpreter not found. Make sure Python is correctly installed.")
+        raise EngineError(
+            "Python interpreter not found. Make sure Python is correctly installed.")
+
+
+
+@CLI(help="Show the current project settings")
+def build(debug: bool = False):
+    """
+    Shows the current project settings.
+    """
+
+    check_existing_project()
+    _app = QYRO_INTERNAL_STATE.get_config("settings")
+
+    if not module_exists('PyInstaller'):
+        raise EngineError(
+            "The 'PyInstaller' module is required for building the project."
+        )
+
+    if not valid_version(_app['version']):
+        raise EngineError(
+            f"Invalid application version '{_app['version']}'. "
+            "Expected format is MAJOR.MINOR.PATCH (e.g., 1.0.0 or 2.3.5). "
+            "Please update the version string in your configuration file."
+        )
+    os_key, module_name, func_name = get_freezer()
+
+    EngineMessage.show(
+        f"Platform detected: [bold green]{to_camel_case(os_key)}[/bold green].\nRunning builder '{func_name}' from module '{module_name}'.",
+        level="info"
+    )
+
+    module = __import__(module_name, fromlist=[func_name])
+    builder = getattr(module, func_name)
+    builder(debug=debug)
+
+
+@CLI(help="Alias for build command")
+def freeze(debug: bool = False):
+    """
+    Freezes the current project settings.
+    """
+    build(debug=debug)

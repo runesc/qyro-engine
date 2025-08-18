@@ -30,6 +30,7 @@ setup(
     install_requires=['PyInstaller>=6.15.0', "pydantic>=2.11.7",
                       "questionary>=2.1.0", "rich>=14.1.0", "watchdog>=6.0.0", "astor>=0.8.1"],
     package_data={
+        'qyro': _get_package_data('qyro', '_default_settings'),
         'qyro.cli_commands': (
             _get_package_data('qyro/cli_commands', 'boilerplate')
             + ['package.json']
