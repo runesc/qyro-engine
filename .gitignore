@@ -1,7 +1,6 @@
 .vscode/
 __pycache__/
 test/
-src/
 requirements/
 build/
 dist/
