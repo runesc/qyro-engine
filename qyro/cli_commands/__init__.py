@@ -2,6 +2,7 @@ import sys
 import os
 import pathlib
 import subprocess
+import importlib
 from os import getcwd
 from string import Template
 from getpass import getuser
@@ -22,6 +23,7 @@ from qyro.utils.parsers import to_camel_case
 from qyro.utils.project_reader import get_project_settings, _find_and_store_settings, _validate_project_structure
 from qyro.utils.helpers import valid_version
 from qyro.pipelines import get_freezer
+from typing import NoReturn
 
 console = Console()
 
@@ -247,12 +249,42 @@ def start():
 
 
 @CLI(help="Show the current project settings")
-def build(debug: bool = False):
+def build(profile: str | bool = None):
     """
-    Shows the current project settings.
-    """
+    Builds the project using the appropriate pipeline for the current platform.
 
+    Args:
+        profile (str | bool, optional): Determines the build type.
+            - If None, the default 'release' setting from the project configuration is used.
+            - If a string, 'prod' or 'production' will be treated as a production build (True),
+              any other string will be treated as a development build (False).
+            - If a boolean, True indicates a production build and False a development build.
+
+    Raises:
+        EngineError: If PyInstaller is not installed.
+        EngineError: If the project version does not follow the MAJOR.MINOR.PATCH format.
+        EngineError: If the function cannot detect the appropriate build pipeline for the current OS.
+
+    Behavior:
+        1. Checks that the current directory is a valid project.
+        2. Determines the build profile (production or development).
+        3. Loads the project configuration.
+        4. Validates that PyInstaller is installed.
+        5. Validates that the project version string is correctly formatted.
+        6. Detects the current platform and selects the correct build pipeline function.
+        7. Prints an informative message about the platform and pipeline being used.
+        8. Dynamically imports the module containing the pipeline function and executes it
+           with the 'debug' argument set according to the build profile.
+    """
     check_existing_project()
+    if profile is None:
+        profile = QYRO_INTERNAL_STATE.get_config("settings")['release']
+
+    if isinstance(profile, str):
+        profile = profile.lower() in ('prod', 'production')
+
+    profile = bool(profile)
+
     _app = QYRO_INTERNAL_STATE.get_config("settings")
 
     if not module_exists('PyInstaller'):
@@ -269,14 +301,13 @@ def build(debug: bool = False):
     os_key, module_name, func_name = get_freezer()
 
     EngineMessage.show(
-        f"Platform detected: [bold green]{to_camel_case(os_key)}[/bold green].\nRunning builder '{func_name}' from module '{module_name}'.",
+        f"Platform detected: [bold green]{to_camel_case(os_key)}[/bold green].\nRunning pipeline '{func_name}' from module '{module_name}'.",
         level="info"
     )
 
-    module = __import__(module_name, fromlist=[func_name])
-    builder = getattr(module, func_name)
-    builder(debug=debug)
-
+    module = importlib.import_module(module_name)
+    pipeline = getattr(module, func_name)
+    pipeline(debug=not profile)
 
 @CLI(help="Alias for build command")
 def freeze(debug: bool = False):

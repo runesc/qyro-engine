@@ -60,6 +60,11 @@ def _get_settings_paths(project_base_dir, profiles):
         if project_path.exists():
             paths.append(str(project_path))
 
+        release_path = Path(project_base_dir) / 'src' / \
+            'build' / 'settings' / f'release.json'
+        if release_path.exists():
+            paths.append(str(release_path))
+
     return paths
 
 

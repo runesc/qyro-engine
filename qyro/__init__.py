@@ -14,7 +14,6 @@ def init(project_dir: str):
     """
     PROJECT_DIR = abspath(project_dir)
     core_config = get_config_path(PROJECT_DIR)["project_dir"]
-    print("CORE CONFIG",core_config)
 
     QYRO_INTERNAL_STATE.set_config('settings', {'project_dir': core_config})
 

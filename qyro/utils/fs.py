@@ -171,8 +171,8 @@ def check_existing_project():
     Verifies if the 'src' folder exists in the current working directory.
 
     Raises:
-        ProjectNotFoundError: If the 'src' directory is not found, with
-                              a suggestion to initialize a new project.
+        EngineError: If the 'src' directory is not found, with
+        a suggestion to initialize a new project.
     """
     project_root = os.getcwd()
     src_path = os.path.join(project_root, 'src')
