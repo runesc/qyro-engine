@@ -122,7 +122,8 @@ class _AppEngine:
 
     def setup_signal_handler(self):
         if not windows_based():
-            QtSignalHandler()
+            binding = available_bindings[self._qt_binding]
+            QtSignalHandler(self.app, binding.QAbstractSocket).install()
 
     def load_build_settings(self) -> dict:
         if not app_is_frozen():

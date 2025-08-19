@@ -4,6 +4,8 @@ test/
 requirements/
 /build/
 /dist/
+/src/
+/requirements/
 *.egg-info/
 *.pyc
 *.env
