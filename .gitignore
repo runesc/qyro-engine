@@ -2,8 +2,8 @@
 __pycache__/
 test/
 requirements/
-build/
-dist/
+/build/
+/dist/
 *.egg-info/
 *.pyc
 *.env
