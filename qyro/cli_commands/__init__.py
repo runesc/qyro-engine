@@ -159,7 +159,7 @@ def init(name: str = '.'):
 
     console.print(
         f"\n🎉 [bold green]Project created successfully at {project_path}/ directory 🎉[/bold green]\n"
-        f"Now you can run:\n\n    [bold cyan]{QYRO_METADATA['name']} start[/bold cyan]"
+        f"\nNow you can run:\n\n    [bold cyan]{QYRO_METADATA['name']} start[/bold cyan]"
     )
 
 
@@ -277,7 +277,7 @@ def build(profile: str | bool = None, bundle: bool = False):
            with the 'debug' argument set according to the build profile.
     """
     check_existing_project()
-    #console.print("⏳ Freezing your app... \n\nThis may take a while, please be patient.")
+    console.print("⏳ Freezing your app... \n\nThis may take a while, please be patient.")
 
     if profile is None:
         profile = QYRO_INTERNAL_STATE.get_config("settings")['release']
@@ -311,6 +311,6 @@ def build(profile: str | bool = None, bundle: bool = False):
     pipeline = getattr(module, func_name)
     pipeline(debug=not profile, bundle=bundle)
 
-    executable = join('target', _app["app_name"], _app["app_name"])
+    binary = join('target', _app["app_name"], _app["app_name"])
 
-    """console.print(f"\n🎉 [bold green]Your app was frozen successfully! 🎉[/bold green]\n\nYou can find the executable at: [cyan]{executable}[/cyan].\n\nIf that doesn't work, see https://github.com/runesc/qyro-engine/issues to report the issue.")"""
+    console.print(f"\n🎉 [bold green]Your app was frozen successfully! 🎉[/bold green]\n\nYou can find the executable at: [cyan]{binary}[/cyan].\n\nIf that doesn't work, see https://github.com/runesc/qyro-engine/issues to report the issue.")"""
