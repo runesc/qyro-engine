@@ -4,7 +4,9 @@ import pathlib
 import subprocess
 import importlib
 from os import getcwd
+from pathlib import Path
 from string import Template
+from shutil import rmtree
 from getpass import getuser
 from os import makedirs, getcwd
 from os.path import join, exists, abspath
@@ -322,3 +324,33 @@ def freeze(profile: str | bool = None, bundle: bool = False) -> NoReturn:
     """
     build(profile=profile, bundle=bundle)
 
+@CLI(help="Cleans the 'target' directory.")
+def clean():
+    """
+    Deletes the 'target' directory and 'build.log' file safely.
+
+    - Ignores missing files/directories.
+    - If 'target' cannot be removed, cleans its contents individually.
+    """
+    target = Path('target')
+    log_file = Path('build.log')
+
+    try:
+        if target.exists():
+            rmtree(target)
+            print(f"Deleted directory: {target}")
+    except OSError:
+        for item in target.glob('*'):
+            try:
+                if item.is_dir():
+                    rmtree(item)
+                else:
+                    item.unlink()
+            except Exception as e:
+                print(f"Failed to delete {item}: {e}")
+    try:
+        if log_file.exists():
+            log_file.unlink()
+            print(f"Deleted file: {log_file}")
+    except Exception as e:
+        print(f"Failed to delete {log_file}: {e}")
