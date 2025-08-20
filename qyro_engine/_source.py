@@ -68,11 +68,15 @@ def _get_settings_paths(project_base_dir, profiles):
     return paths
 
 
-def default_path(path_str):
-    defaults_dir = os.path.normpath(os.path.join(
+def default_path(path_):
+    default_directory = os.path.normpath(os.path.join(
         os.path.dirname(__file__), '..', 'qyro', '_default_settings'))
-    return path(defaults_dir, path_str)
+    return path(default_directory, path_)
 
+def env_root_path(path_):
+    default_directory = os.path.normpath(os.path.join(
+        os.path.dirname(__file__), '..', 'qyro'))
+    return path(default_directory, path_)
 
-def path(base_dir, path_str):
-    return os.path.normpath(os.path.join(base_dir, *path_str.split('/')))
+def path(base_directory_path, path_):
+    return os.path.normpath(os.path.join(base_directory_path, *path_.split('/')))

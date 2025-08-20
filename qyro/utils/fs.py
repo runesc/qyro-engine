@@ -1,16 +1,78 @@
-from ..utils import EngineMessage, EngineError
-from rich.prompt import Confirm
-from rich.console import Console
-from typing import Dict
+
+
 import re
 import pathlib
 import shutil
 import os
 import json
-from typing import Dict, List, Tuple, Union
+from os.path import exists
+from pathlib import Path
+from typing import Dict
+from typing import Dict, List, Tuple, Union, Callable
+from rich.prompt import Confirm
+from rich.console import Console
 from qyro._store import QYRO_INTERNAL_STATE
+from ..utils import EngineMessage, EngineError
+from os import makedirs
+from os.path import dirname
 
 console = Console()
+
+class _PathCollection:
+    """
+    A class to manage a set of file and directory paths.
+
+    The constructor attempts to resolve each path to its absolute form and stores
+    only the ones that exist. The class implements the 'in' operator to check if a
+    given path exactly matches a registered path or if it is a sub-path of a
+    registered directory.
+    """
+
+    def __init__(self, paths: list[str]):
+        """
+        Initializes the path collection.
+
+        Args:
+            paths (list[str]): A list of file or directory paths.
+        """
+        self.paths = []
+        for path_str in paths:
+            try:
+                path = Path(path_str)
+                resolved_path = path.resolve()
+                if resolved_path.exists():
+                    self.paths.append(resolved_path)
+            except Exception as e:
+                EngineError(f" Could not resolve path '{path_str}': {e}")
+
+    def __contains__(self, other_path):
+        """
+        Implements the 'in' operator for the class.
+
+        Checks if another path is an exact match or is contained within any of the
+        registered paths in the collection.
+
+        Args:
+            other_path: The path to check. Can be a string (str) or a Path object.
+
+        Returns:
+            bool: True if the path is contained, False otherwise.
+        """
+        try:
+            other_path_obj = Path(other_path).resolve()
+        except Exception:
+            return False
+
+        for registered_path in self.paths:
+            if registered_path == other_path_obj:
+                return True
+            try:
+                if other_path_obj.is_relative_to(registered_path):
+                    return True
+            except ValueError:
+                continue
+
+        return False
 
 def _load_package_json() -> dict:
     """
@@ -94,10 +156,8 @@ def replicate_and_filter(
     for src, dest in files:
         dest.parent.mkdir(parents=True, exist_ok=True)
 
-        # Obtener la ruta relativa del archivo de origen
         relative_src_path = src.relative_to(source)
 
-        # Comparar con la lista de archivos a filtrar
         if relative_src_path in relative_files_to_filter:
             with open(src, 'r') as f_in:
                 content = f_in.read()
@@ -107,6 +167,12 @@ def replicate_and_filter(
         else:
             shutil.copy2(src, dest)
 
+        if dest.suffix.lower() in ['.py']:
+            with open(dest, 'r') as f_in:
+                content = f_in.read()
+            filtered_content = _expand_placeholders(content, replacements)
+            with open(dest, 'w') as f_out:
+                f_out.write(filtered_content)
 
 def resolve_path(relative_path: str, replacements: Dict[str, str] = None) -> pathlib.Path:
     """
@@ -183,5 +249,23 @@ def check_existing_project():
             " run the command:\n\n[bold green]'qyro init'[/bold green]\n\nTo create a new one."
         )
     return True
+
+def _copy_and_filter(callback: Callable[[str], Path], src: str, dst: str) -> bool:
+    source_path = callback(src)
+    destination_path = Path(dst).resolve()
+
+    if exists(source_path):
+        settings = QYRO_INTERNAL_STATE.get_config('settings')
+        files_to_filter = [callback(f) for f in settings.get('files_to_filter', [])]
+
+        replicate_and_filter(
+            source_path=source_path,
+            destination_path=destination_path,
+            replacements=settings,
+            files_to_filter=files_to_filter
+        )
+        return True
+    return False
+
 
 QYRO_METADATA = _load_package_json()

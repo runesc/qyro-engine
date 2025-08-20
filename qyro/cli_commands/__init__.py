@@ -249,7 +249,7 @@ def start():
 
 
 @CLI(help="Show the current project settings")
-def build(profile: str | bool = None):
+def build(profile: str | bool = None, bundle: bool = False):
     """
     Builds the project using the appropriate pipeline for the current platform.
 
@@ -277,6 +277,8 @@ def build(profile: str | bool = None):
            with the 'debug' argument set according to the build profile.
     """
     check_existing_project()
+    #console.print("⏳ Freezing your app... \n\nThis may take a while, please be patient.")
+
     if profile is None:
         profile = QYRO_INTERNAL_STATE.get_config("settings")['release']
 
@@ -307,11 +309,8 @@ def build(profile: str | bool = None):
 
     module = importlib.import_module(module_name)
     pipeline = getattr(module, func_name)
-    pipeline(debug=not profile)
+    pipeline(debug=not profile, bundle=bundle)
 
-@CLI(help="Alias for build command")
-def freeze(debug: bool = False):
-    """
-    Freezes the current project settings.
-    """
-    build(debug=debug)
+    executable = join('target', _app["app_name"], _app["app_name"])
+
+    """console.print(f"\n🎉 [bold green]Your app was frozen successfully! 🎉[/bold green]\n\nYou can find the executable at: [cyan]{executable}[/cyan].\n\nIf that doesn't work, see https://github.com/runesc/qyro-engine/issues to report the issue.")"""

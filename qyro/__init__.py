@@ -35,17 +35,18 @@ def enable_profile(profile: str):
     QYRO_INTERNAL_STATE.set_config('settings', merged_settings)
 
 
-def path(path_str: str) -> str:
+
+def path(path: str) -> str:
     """
     Returns the absolute path of a file in the project directory.
     Supports placeholders like `${freeze_dir}`.
     """
     settings = QYRO_INTERNAL_STATE.get_config('settings')
-    path_str = resolve_placeholders(path_str, settings)
+    path = resolve_placeholders(path, settings)
 
     try:
-        PROJECT_DIR = QYRO_INTERNAL_STATE.get_config('project_dir')
+        PROJECT_DIR = QYRO_INTERNAL_STATE.get_config('settings')['project_dir']
     except KeyError:
         raise EngineError("Cannot call path(...) until init(...) has been called.") from None
 
-    return _source_path(PROJECT_DIR, path_str)
+    return _source_path(PROJECT_DIR, path)

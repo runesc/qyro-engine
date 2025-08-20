@@ -3,9 +3,11 @@ import os
 from setuptools import setup, find_packages
 from os.path import relpath, join
 
+
 def _load_package_json():
     with open('package.json', 'r', encoding='utf-8') as file:
         return json.loads(file.read())
+
 
 def _get_package_data(pkg_dir, data_subdir):
     result = []
@@ -14,6 +16,7 @@ def _get_package_data(pkg_dir, data_subdir):
             filepath = join(dirpath, filename)
             result.append(relpath(filepath, pkg_dir))
     return result
+
 
 PACKAGE = _load_package_json()
 
@@ -28,13 +31,14 @@ setup(
     url=PACKAGE['homepage'],
     packages=find_packages(exclude=('tests', 'tests.*')),
     install_requires=['PyInstaller>=6.15.0', "pydantic>=2.11.7",
-                      "questionary>=2.1.0", "rich>=14.1.0", "watchdog>=6.0.0", "astor>=0.8.1"],
+                      "questionary>=2.1.0", "rich>=14.1.0", "watchdog>=6.0.0", "astor>=0.8.1", "pillow>=11.3.0"],
     package_data={
         'qyro': _get_package_data('qyro', '_default_settings'),
         'qyro.cli_commands': (
             _get_package_data('qyro/cli_commands', 'boilerplate')
             + ['package.json']
-        )
+        ),
+        'qyro.cli_commands': ['package.json'],
     },
     data_files=[
         ('qyro/cli_commands', ['package.json']),
@@ -65,4 +69,5 @@ setup(
     platforms=['MacOS', 'Windows', 'Debian',
                'Fedora', 'CentOS', 'Arch', 'Raspbian'],
     test_suite='tests',
+    include_package_data=True
 )
