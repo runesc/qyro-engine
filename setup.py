@@ -27,7 +27,7 @@ setup(
     author_email=PACKAGE['author_email'],
     url=PACKAGE['homepage'],
     packages=find_packages(exclude=('tests', 'tests.*')),
-    install_requires=['PyInstaller>=6.9.0', "pydantic>=2.11.7",
+    install_requires=['PyInstaller>=6.15.0', "pydantic>=2.11.7",
                       "questionary>=2.1.0", "rich>=14.1.0", "watchdog>=6.0.0", "astor>=0.8.1", "pillow>=11.3.0"],
     package_data={
         'qyro': _get_package_data('qyro', '_default_settings'),
