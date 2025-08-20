@@ -248,7 +248,7 @@ def start():
 
 
 
-@CLI(help="Show the current project settings")
+@CLI(help="Build the project")
 def build(profile: str | bool = None, bundle: bool = False):
     """
     Builds the project using the appropriate pipeline for the current platform.
@@ -313,4 +313,12 @@ def build(profile: str | bool = None, bundle: bool = False):
 
     binary = join('target', _app["app_name"], _app["app_name"])
 
-    console.print(f"\n🎉 [bold green]Your app was frozen successfully! 🎉[/bold green]\n\nYou can find the executable at: [cyan]{binary}[/cyan].\n\nIf that doesn't work, see https://github.com/runesc/qyro-engine/issues to report the issue.")"""
+    console.print(f"\n🎉 [bold green]Your app was frozen successfully! 🎉[/bold green]\n\nYou can find the executable at: [cyan]{binary}[/cyan].\n\nIf that doesn't work, see https://github.com/runesc/qyro-engine/issues to report the issue.")
+
+@CLI(help="Build the project")
+def freeze(profile: str | bool = None, bundle: bool = False) -> NoReturn:
+    """
+    Alias for the build command.
+    """
+    build(profile=profile, bundle=bundle)
+
