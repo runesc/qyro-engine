@@ -17,10 +17,11 @@ def get_frozen_resource_dirs() -> List[str]:
     Returns:
         List[str]: A list of absolute paths to resource directories.
     """
+    application = os.path.dirname(sys.executable)
     if getattr(sys, 'frozen', False) and mac_based():
-        return [os.path.join(sys._MEIPASS, '..', 'Resources')]
+        return [os.path.join(application, os.pardir, 'Resources')]
     elif getattr(sys, 'frozen', False):
-        return [sys._MEIPASS]
+        return [application]
     else:
         return [os.path.dirname(os.path.abspath(__file__))]
 

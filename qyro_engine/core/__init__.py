@@ -2,14 +2,18 @@ import importlib
 from functools import lru_cache, wraps
 from typing import Callable, TypeVar, Any
 from collections import namedtuple
-from qyro.utils.platform import windows_based, mac_based
+from qyro.utils.platform import EngineError, windows_based, mac_based
 from qyro_engine.utils import app_is_frozen
 from qyro_engine._signal import QtSignalHandler
 from qyro_engine._frozen import load_frozen_build_settings, get_frozen_resource_dirs
 from qyro_engine._source import find_project_root_directory, get_project_resource_locations, load_build_configurations
 from qyro_engine.utils.resources import FileLocator
-from qyro_engine.exceptions.excepthooks import _Excepthook, StderrExceptionHandler
+from qyro_engine.exceptions.excepthooks import StderrExceptionHandler, _Excepthook
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 _T = TypeVar('_T')
 QtBinding = namedtuple('QtBinding', ['QApplication', 'QIcon', 'QAbstractSocket'])
@@ -101,14 +105,17 @@ class _AppEngine:
     @lazy_property
     def get_resource_locator(self):
         if app_is_frozen():
+            # Cuando está compilado, usa las carpetas dentro del bundle
             resource_dirs = get_frozen_resource_dirs()
         else:
+            # Modo desarrollo
             project_root = find_project_root_directory()
             resource_dirs = get_project_resource_locations(project_root)
         return FileLocator(resource_dirs)
 
-    def _resource(self, *rel_path):
-        return self.get_resource_locator.find(*rel_path)
+
+    def _resource(self, path):
+        return self.get_resource_locator.find(path)
 
     @lazy_property
     def set_app_icon(self):
@@ -126,7 +133,7 @@ class _AppEngine:
             QtSignalHandler(self.app, binding.QAbstractSocket).install()
 
     def load_build_settings(self) -> dict:
-        if not app_is_frozen():
+        if app_is_frozen():
             return load_frozen_build_settings()
         else:
             project_root = find_project_root_directory()

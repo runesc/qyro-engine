@@ -11,16 +11,17 @@ except ImportError:
         from PySide2.QtWidgets import QApplication, QWidget
     except ImportError:
         try:
-            from PyQt6.QtWidgets import  QApplication, QWidget
+            from PyQt6.QtWidgets import QApplication, QWidget
         except ImportError:
             try:
                 from PyQt5.QtWidgets import QApplication, QWidget
 
             except ImportError:
                 raise ImportError(
-                    "No se encontró PySide6, PySide2, PyQt6 ni PyQt5 instalado."
-                    "Por favor, instala uno de estos: pip install PySide6 (o PySide2, PyQt6, PyQt5)"
+                    "PySide6, PySide2, PyQt6, or PyQt5 was not found."
+                    "Please install one of them: pip install PySide6 (or PySide2, PyQt6, PyQt5)"
                 )
+
 
 def bootstrap(cls):
     def __init__(self, *args, **kwargs):
@@ -34,6 +35,7 @@ def bootstrap(cls):
 
     cls.__init__ = __init__
     return cls
+
 
 class Component:
     def component_will_mount(self): pass
@@ -83,7 +85,7 @@ class Component:
 
     @lazy_property
     def _project_dir(self):
-        assert not app_is_frozen(), 'Only available when running from source'
+        assert app_is_frozen(), 'Only available when running from source'
         return find_project_root_directory()
 
     @lazy_property
@@ -110,7 +112,6 @@ class Component:
             QApplication.processEvents()
         except RuntimeError:
             pass
-
 
     def _ensure_children_visibility(self):
         """
@@ -146,7 +147,8 @@ class Component:
             self.set_styles()
 
             self._ensure_children_visibility()
-        except RuntimeError: pass
+        except RuntimeError:
+            pass
         finally:
             self.setUpdatesEnabled(True)
 

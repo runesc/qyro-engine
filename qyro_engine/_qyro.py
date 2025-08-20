@@ -1,5 +1,4 @@
 
-from qyro_engine.utils.platform import linux_based, ubuntu_based, arch_based, fedora_based, _get_platform_name
 from typing import Dict, Any, List
 
 
@@ -15,6 +14,8 @@ def generate_core_profiles() -> List[str]:
     Generates a list of base profiles, always including 'base', 'secret', and the platform name.
     If the platform is Linux, it adds a specific profile for the distribution.
     """
+    from qyro_engine.utils.platform import linux_based, ubuntu_based, arch_based, fedora_based, _get_platform_name
+
     base_profiles = ['base', 'secret', _get_platform_name().lower()]
 
     if linux_based():

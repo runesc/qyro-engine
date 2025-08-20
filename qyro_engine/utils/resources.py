@@ -1,5 +1,5 @@
 from pathlib import Path
-from qyro_engine.exceptions import EngineError
+from qyro._exceptions import EngineError
 
 class FileLocator:
     """

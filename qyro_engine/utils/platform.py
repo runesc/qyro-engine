@@ -2,9 +2,8 @@ import sys
 import platform
 import os
 from typing import Any
-
 from qyro_engine._store_manager import QYRO_RUNTIME_STATE
-from qyro_engine.exceptions import EngineError
+from qyro._exceptions import EngineError
 
 def _get_platform_name() -> str:
     """

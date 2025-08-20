@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from qyro_engine.exceptions import EngineError
+from qyro._exceptions import EngineError
 from qyro_engine._qyro import generate_core_profiles, get_config_path, extract_public_settings
 from qyro_engine._settings import load_json_configs
 

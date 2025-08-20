@@ -7,7 +7,7 @@ import astor
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from rich.console import Console
-from qyro_engine.exceptions import EngineError
+from qyro._exceptions import EngineError
 
 try:
     from PySide6.QtCore import (
