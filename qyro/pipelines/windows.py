@@ -158,8 +158,6 @@ def _locate_dll(dll_name: str) -> str | None:
     return None
 
 
-# ----
-
 def _generate_resources():
     """
     Copy the data files from src/main/resources to freeze_dir.
