@@ -1,0 +1,71 @@
+[project]
+name = "qyro-engine"
+version = "1.0.0"
+description = "QYRO is a lightweight and powerful Python/Qt application packager. It helps you orchestrate, organize, and package all your project resources into standalone executables and installers for multiple platforms."
+authors = [
+    {name = "runesc", email = "fredogodofredodospuntosv@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.9,<3.15"
+keywords = ["packaging", "pyinstaller", "qt", "python", "executable", "gui", "desktop"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+dependencies = [
+    "pyinstaller>=6.15.0",
+    "pydantic>=2.11.7",
+    "questionary>=2.1.0",
+    "rich>=14.1.0",
+    "watchdog>=6.0.0",
+    "astor>=0.8.1",
+    "pillow>=11.3.0",
+    "kivy (>=2.3.1,<3.0.0)"
+]
+
+# Dependencias opcionales
+[project.optional-dependencies]
+licensing = ["rsa>=3.4.2"]
+sentry = ["sentry-sdk>=0.6.6"]
+upload = ["boto3"]
+
+# Scripts de consola
+[project.scripts]
+qyro = "qyro.__main__:main"
+ppg = "qyro.__main__:main"
+
+# URLs del proyecto
+[project.urls]
+Homepage = "https://github.com/runesc/qyro-engine"
+Repository = "https://github.com/runesc/qyro-engine"
+Documentation = "https://qyro-engine.readthedocs.io"
+"Bug Tracker" = "https://github.com/runesc/qyro-engine/issues"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# Configuración específica de Poetry (solo lo que no está duplicado)
+[tool.poetry]
+packages = [
+    {include = "qyro"}
+]
+
+include = [
+    "qyro/_default_settings/**/*",
+    "qyro/cli_commands/boilerplate/**/*",
+    "package.json"
+]
+
+exclude = ["tests", "tests.*"]

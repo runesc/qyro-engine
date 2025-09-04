@@ -2,18 +2,43 @@
 
 VERSION="1.0.0"
 
-# copy package.json data to qyro/builtin_commands/
-echo "🔄 Actualizando datos del paquete en setup.py..."
-cp package.json qyro/builtin_commands/
+# Verificar que Poetry esté instalado
+if ! command -v poetry &> /dev/null; then
+    echo "❌ Poetry no está instalado. Instálalo con: pip install poetry"
+    exit 1
+fi
+
+echo "🔄 Actualizando datos del paquete..."
+if [ -f "package.json" ]; then
+    cp package.json qyro/cli_commands/
+    echo "✅ package.json copiado"
+else
+    echo "⚠️  package.json no encontrado, continuando..."
+fi
 
 echo "🧹 Limpiando builds anteriores..."
-rm -rf build dist qyro.egg-info
+rm -rf build dist *.egg-info
 
-echo "📦 Creando wheel para qyro v$VERSION..."
-python setup.py sdist bdist_wheel
+echo "📦 Verificando configuración de Poetry..."
+poetry check
 
-echo "📥 Instalando wheel local..."
-pip uninstall -y qyro
-pip install "dist/qyro-$VERSION-py3-none-any.whl"
+echo "📦 Creando wheel para qyro v$VERSION con Poetry..."
+poetry build
 
-echo "✅ Instalación completada para qyro v$VERSION"
+if [ $? -eq 0 ]; then
+    echo "✅ Build exitoso"
+    
+    echo "📥 Desinstalando versión anterior..."
+    pip uninstall -y qyro-engine
+    
+    echo "📥 Instalando wheel local..."
+    if pip install "dist/qyro_engine-$VERSION-py3-none-any.whl"; then
+        echo "✅ Instalación completada para qyro-engine v$VERSION"
+    else
+        echo "❌ Error en la instalación"
+        exit 1
+    fi
+else
+    echo "❌ Error en el build"
+    exit 1
+fi

@@ -80,10 +80,13 @@ def init(name: str = '.'):
     # Select Qt binding
     python_binding = select(
         "Select your Qt binding [PyQt5/PyQt6/PySide2/PySide6] (default: PySide6):",
-        choices=["PyQt5", "PyQt6", "PySide2", "PySide6"],
+        choices=["PyQt5", "PyQt6", "PySide2", "PySide6", "Kivy (Experimental)"],
         default="PySide6",
         style=custom_style
     ).ask()
+
+    if "Kivy (Experimental)" in python_binding:
+        python_binding = "Kivy"
 
     # Generate example macOS bundle identifier
     eg_bundle_id = f"com.{author.lower().split()[0]}.{''.join(app.lower().split())}"
@@ -133,7 +136,7 @@ def init(name: str = '.'):
         f"📂 Project folder '{name}/' created at: [bold]{project_path}[/bold]")
 
     # Locate boilerplate templates
-    template_dir = pathlib.Path(__file__).resolve().parent / 'boilerplate'
+    template_dir = pathlib.Path(__file__).resolve().parent / 'templates/boilerplate' if python_binding != "Kivy" else pathlib.Path(__file__).resolve().parent / 'templates/kivy_boilerplate'
     if not template_dir.exists():
         raise EngineError(
             f"Template directory not found at: [bold]{template_dir}[/bold]")
